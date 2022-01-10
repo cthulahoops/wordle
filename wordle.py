@@ -82,31 +82,36 @@ def filter_possibilities(pattern, words):
     pattern = Pattern.from_string(pattern)
     return [w for w in words if pattern.match(w)]
 
+def recommend_guess(possibilities):
+    scored_guesses = []
+    for potential_guess in words:
+        entropy = guess_entropy(potential_guess, possibilities)
+        scored_guesses.append((entropy, -(potential_guess in possibilities), potential_guess))
+
+    (entropy, _, recommendation) = min(scored_guesses)
+    print(guess_counts(recommendation, possibilities))
+
+    scored_guesses.sort()
+
+    print(scored_guesses[:10])
+
+    print(entropy, recommendation)
+
+    return recommendation
+
 def main():
     remaining_possibilities = words
 
     guess = 'tares'
+
     while len(remaining_possibilities) > 1:
         print("I recommend: ", guess)
 
         pattern = input('Result? ')
         remaining_possibilities = filter_possibilities(pattern, remaining_possibilities)
 
-        scored_guesses = []
-        for potential_guess in words:
-            entropy = guess_entropy(potential_guess, remaining_possibilities)
-            scored_guesses.append((entropy, -(potential_guess in remaining_possibilities), potential_guess))
+        guess = recommend_guess(remaining_possibilities)
 
-        (entropy, _, recommendation) = min(scored_guesses)
-        print(guess_counts(recommendation, remaining_possibilities))
-
-        scored_guesses.sort()
-
-        print(scored_guesses[:10])
-
-        print(entropy, recommendation)
-
-        guess = recommendation
 
     print("The answer is: ", remaining_possibilities[0])
 
