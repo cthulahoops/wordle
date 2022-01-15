@@ -4,7 +4,8 @@ from math import log
 import re
 # import pytest
 
-words = open("/usr/share/dict/words").read().splitlines()
+with open("/usr/share/dict/words", encoding='utf-8') as fh:
+    words = fh.read().splitlines()
 
 words = [w for w in words if re.match(r'^[a-z]{5}$', w)]
 
@@ -12,14 +13,14 @@ words = [w for w in words if re.match(r'^[a-z]{5}$', w)]
 class Pattern:
     regex: str
     exclude: set
-    require: set
+    require: Counter
 
     @classmethod
     def from_string(cls, pattern_string):
         pattern = re.findall('[a-z][*?]?', pattern_string)
         parts = ['.' for _ in range(5)]
         exclude = set()
-        require = set()
+        require = Counter()
 
         for (i, place) in enumerate(pattern):
             letter = place[0]
@@ -27,20 +28,30 @@ class Pattern:
 
             if marker == '*':
                 parts[i] = letter
-                require.add(letter)
+                require[letter] += 1
             elif marker == '?':
                 parts[i] = f'[^{letter}]'
-                require.add(letter)
+                require[letter] += 1
             else:
                 exclude.add(letter)
 
-            for x in require:
-                if x in exclude:
-                    exclude.remove(x)
         return cls(regex='^' + ''.join(parts) + '$', exclude=exclude, require=require)
 
     def match(self, word):
-        return re.match(self.regex, word) and all(x in word for x in self.require) and not any(x in word for x in self.exclude)
+        if not re.match(self.regex, word):
+            return False
+
+        counts = Counter(word)
+
+        for letter, count in counts.items():
+            if count < self.require[letter]:
+                return False
+
+        for letter in self.exclude:
+            if counts[letter] > self.require[letter]:
+                return False
+
+        return True
 
 def score(guess, word):
     assert len(guess) == len(word)
@@ -109,9 +120,7 @@ def main():
 
         pattern = input('Result? ')
         remaining_possibilities = filter_possibilities(pattern, remaining_possibilities)
-
         guess = recommend_guess(remaining_possibilities)
-
 
     print("The answer is: ", remaining_possibilities[0])
 
