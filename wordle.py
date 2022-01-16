@@ -2,12 +2,14 @@ from dataclasses import dataclass
 from collections import Counter
 from math import log
 import re
+
+import words
 # import pytest
 
-with open("/usr/share/dict/words", encoding='utf-8') as fh:
-    words = fh.read().splitlines()
+# with open("/usr/share/dict/words", encoding='utf-8') as fh:
+#     words = fh.read().splitlines()
 
-words = [w for w in words if re.match(r'^[a-z]{5}$', w)]
+# words = [w for w in words if re.match(r'^[a-z]{5}$', w)]
 
 @dataclass
 class Pattern:
@@ -95,7 +97,7 @@ def filter_possibilities(pattern, words):
 
 def recommend_guess(possibilities):
     scored_guesses = []
-    for potential_guess in words:
+    for potential_guess in words.allowed_guesses:
         entropy = guess_entropy(potential_guess, possibilities)
         scored_guesses.append((entropy, -(potential_guess in possibilities), potential_guess))
 
@@ -111,11 +113,12 @@ def recommend_guess(possibilities):
     return recommendation
 
 def main():
-    remaining_possibilities = words
+    remaining_possibilities = words.possible_words
 
-    guess = 'tares'
+    guess = 'soare'
 
     while len(remaining_possibilities) > 1:
+        print(f"{len(remaining_possibilities)} words remaining.")
         print("I recommend: ", guess)
 
         pattern = input('Result? ')
