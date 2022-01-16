@@ -26,6 +26,7 @@ def test_matches(pattern, word):
     ('glade*', 'seven'),
     ('pa*n*da', 'manga'),
     ('clams?', 'rides'),
+    ('ta?r?es?', 'bobby'),
 ])
 def test_excludes(pattern, word):
     pattern = Pattern.from_string(pattern)

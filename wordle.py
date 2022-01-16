@@ -43,8 +43,8 @@ class Pattern:
 
         counts = Counter(word)
 
-        for letter, count in counts.items():
-            if count < self.require[letter]:
+        for letter, count in self.require.items():
+            if counts[letter] < count:
                 return False
 
         for letter in self.exclude:
